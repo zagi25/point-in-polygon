@@ -1,0 +1,2 @@
+class DuplicatePoint(Exception):
+    pass
