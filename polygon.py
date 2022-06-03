@@ -45,10 +45,10 @@ class Vector:
 
     @start.setter
     def start(self, value: Point):
-        if isinstance(value, Point):
-            self._start = value
-        else:
+        if not isinstance(value, Point):
             raise TypeError('Expected a value type: Point')
+
+        self._start = value
 
     @property
     def end(self) -> Point:
@@ -56,10 +56,10 @@ class Vector:
 
     @end.setter
     def end(self, value: Point):
-        if isinstance(value, Point):
-            self._end = value
-        else:
+        if not isinstance(value, Point):
             raise TypeError('Expected a value type: Point')
+
+        self._end = value
 
     @property
     def x(self) -> float:
@@ -67,10 +67,10 @@ class Vector:
 
     @x.setter
     def x(self, value: float):
-        if isinstance(value, float):
-            self._x = value
-        else:
+        if not isinstance(value, float):
             raise TypeError('Expected a value type: float')
+
+        self._x = value
 
     @property
     def y(self) -> float:
@@ -78,10 +78,10 @@ class Vector:
 
     @y.setter
     def y(self, value: float):
-        if isinstance(value, float):
-            self._y = value
-        else:
+        if not isinstance(value, float):
             raise TypeError('Expected a value type: float')
+
+        self._y = value
 
 
     def magnitude(self) -> float:
@@ -104,31 +104,31 @@ class Vector:
                 angle: float:
                     angle between two vectors in radians.
         '''
-        if isinstance(vector1, Vector) and isinstance(vector2, Vector):
-            #Vector magnitudes
-            vector1_mag = vector1.magnitude()
-            vector2_mag = vector2.magnitude()
-
-            #Dot product
-            dot_prod: float = vector1.x * vector2.x + vector1.y * vector2.y
-            mag_prod: float = vector1_mag * vector2_mag
-
-            #Angle is calculated by the formula: angle = arccos(dot product / magnitude product)
-            try:
-                angle: float = math.acos(dot_prod / mag_prod)
-            except ZeroDivisionError:
-                angle = 0.0
-
-            #Cross prodcut of vectors. That product determines if our angle > 0 or angle < 0.
-            angle_orientaion: float = vector1.x * vector2.y - vector1.y * vector2.x
-
-            #If angle < 0 we substract angle from 2pi
-            if angle_orientaion < 0:
-                angle = 2 * math.pi - angle
-
-            return angle
-        else:
+        if not isinstance(vector1, Vector) or not isinstance(vector2, Vector):
             raise TypeError('Expected arguments type: Vector, Vector')
+
+        #Vector magnitudes
+        vector1_mag = vector1.magnitude()
+        vector2_mag = vector2.magnitude()
+
+        #Dot product
+        dot_prod: float = vector1.x * vector2.x + vector1.y * vector2.y
+        mag_prod: float = vector1_mag * vector2_mag
+
+        #Angle is calculated by the formula: angle = arccos(dot product / magnitude product)
+        try:
+            angle: float = math.acos(dot_prod / mag_prod)
+        except ZeroDivisionError:
+            angle = 0.0
+
+        #Cross prodcut of vectors. That product determines if our angle > 0 or angle < 0.
+        angle_orientaion: float = vector1.x * vector2.y - vector1.y * vector2.x
+
+        #If angle < 0 we substract angle from 2pi
+        if angle_orientaion < 0:
+            angle = 2 * math.pi - angle
+
+        return angle
 
 
 class Point:
@@ -162,10 +162,10 @@ class Point:
 
     @x.setter
     def x(self, value: float) -> None:
-        if isinstance(value, float):
-            self._x = value
-        else:
+        if not isinstance(value, float):
             raise TypeError('Expected a value type: float')
+
+        self._x = value
 
     @property
     def y(self) -> float:
@@ -173,10 +173,10 @@ class Point:
 
     @y.setter
     def y(self, value: float) -> None:
-        if isinstance(value, float):
-            self._y = value
-        else:
+        if not isinstance(value, float):
             raise TypeError('Expected a value type: float')
+
+        self._y = value
 
 
 class ConvexPolygon:
@@ -206,7 +206,7 @@ class ConvexPolygon:
                 points: List[Point]
                     list of points of polygon.
         '''
-        self.points = self._sort_points(points)
+        self.points = points
         self._check_convex()
 
     #Getters and Setters
@@ -216,15 +216,16 @@ class ConvexPolygon:
 
     @points.setter
     def points(self, value) -> None:
-        if isinstance(value, list):
-            if all(isinstance(element, Point) for element in value):
-                if len(value) < 3:
-                    raise ValueError('Number of points must be 3 or greater!')
-                self._points = value
-            else:
-                raise TypeError('Expected type of an element of a list: Point')
-        else:
+        if not isinstance(value, list):
             raise TypeError('Expected a value type: List[Point]')
+
+        if not all(isinstance(element, Point) for element in value):
+            raise TypeError('Expected type of an element of a list: Point')
+
+        if len(value) < 3:
+            raise ValueError('Number of points must be 3 or greater!')
+
+        self._points = self._sort_points(value)
 
 
     def _sort_points(self, points: List[Point]) -> List[Point]:
@@ -239,47 +240,41 @@ class ConvexPolygon:
                 List[Point]
                     counterclockwise sorted list of points.
         '''
-        if isinstance(points, list):
-            if all(isinstance(element, Point) for element in points):
-                sum_x: float = 0
-                sum_y: float = 0
+        sum_x: float = 0
+        sum_y: float = 0
 
-                #Sum of all x and all y coordinates
-                for p in points:
-                    sum_x += p.x
-                    sum_y += p.y
+        #Sum of all x and all y coordinates
+        for p in points:
+            sum_x += p.x
+            sum_y += p.y
 
-                #Calculating mean of x and y coordinates to find center of polygon
-                mean_x: float = sum_x / len(points)
-                mean_y: float = sum_y / len(points)
+        #Calculating mean of x and y coordinates to find center of polygon
+        mean_x: float = sum_x / len(points)
+        mean_y: float = sum_y / len(points)
 
-                #Center of polygon
-                center: Point = Point(mean_x, mean_y)
-                #Point x + 1 away from center
-                center_1: Point = Point(center.x + 1, center.y)
+        #Center of polygon
+        center: Point = Point(mean_x, mean_y)
+        #Point x + 1 away from center
+        center_1: Point = Point(center.x + 1, center.y)
 
-                #Vector form center to center_1
-                center_vector: Vector = Vector(center, center_1)
+        #Vector form center to center_1
+        center_vector: Vector = Vector(center, center_1)
 
-                tmp_points: List[Tuple[float, Point]] = []
+        tmp_points: List[Tuple[float, Point]] = []
 
-                #Calculating angle between center_vector and vector from center to point of polygon
-                for p in points:
-                    vector2: Vector = Vector(center, p)
+        #Calculating angle between center_vector and vector from center to point of polygon
+        for p in points:
+            vector2: Vector = Vector(center, p)
 
-                    angle = Vector.angle_between_vectors(center_vector, vector2)
+            angle = Vector.angle_between_vectors(center_vector, vector2)
 
-                    #Storing tuple of angle and point
-                    tmp_points.append((angle, p))
+            #Storing tuple of angle and point
+            tmp_points.append((angle, p))
 
-                #Sorting from smallest to largest angle
-                tmp_points.sort()
+        #Sorting from smallest to largest angle
+        tmp_points.sort()
 
-                return [p[1] for p in tmp_points]
-            else:
-                raise TypeError('Expected type of an element of a list: Point')
-        else:
-            raise TypeError('Expected a value type: List[Point]')
+        return [p[1] for p in tmp_points]
 
 
     def _check_convex(self):
@@ -329,32 +324,32 @@ class ConvexPolygon:
                 bool:
                     is point in polygon.
         '''
-        if isinstance(point, Point):
-            for i in range(len(self.points)):
-                #Construct vector from two points
-                if i == len(self.points) - 1:
-                    point2: Point = self.points[0]
-                else:
-                    point2: Point = self.points[i + 1]
-
-                point1: Point = self.points[i]
-
-                vector1: Vector = Vector(point1, point2)
-                #Construct vector from point2 to provided point
-                vector2: Vector = Vector(point2, point)
-
-                #Coss product to check if point is on the 'left' or 'right' of vector
-                position: float = vector1.x * vector2.y - vector1.y * vector2.x
-
-                #Because we are moving counterclockwise point needs to be on the 'left' side of every vector
-                #If point is not on the 'left' point is not in polygon
-                if position < 0:
-                    return False
-
-            #If point is on the 'left' side of every vector point is in polygon
-            return True
-        else:
+        if not isinstance(point, Point):
             raise TypeError('Expected an argument type: Point')
+
+        for i in range(len(self.points)):
+            #Construct vector from two points
+            if i == len(self.points) - 1:
+                point2: Point = self.points[0]
+            else:
+                point2: Point = self.points[i + 1]
+
+            point1: Point = self.points[i]
+
+            vector1: Vector = Vector(point1, point2)
+            #Construct vector from point2 to provided point
+            vector2: Vector = Vector(point2, point)
+
+            #Coss product to check if point is on the 'left' or 'right' of vector
+            position: float = vector1.x * vector2.y - vector1.y * vector2.x
+
+            #Because we are moving counterclockwise point needs to be on the 'left' side of every vector
+            #If point is not on the 'left' point is not in polygon
+            if position < 0:
+                return False
+
+        #If point is on the 'left' side of every vector point is in polygon
+        return True
 
 
     def draw(self, point: Point, contains: bool) -> None:
@@ -368,47 +363,46 @@ class ConvexPolygon:
                     does polygon contains point.
 
         '''
-        if isinstance(point, Point) and isinstance(contains, bool):
-            if contains:
-                text: str = f'Polygon contains point {point.x, point.y}'
-            else:
-                text: str = f'Polygon doesn\'t contains point {point.x, point.y}'
-
-            #List of tuples containing x and y coordinates of point
-            coord: List[Tuple[float, float]] = [(p.x, p.y) for p in self.points]
-
-            #Repeat the first point to create a 'closed loop'
-            coord.append(coord[0])
-
-            #Create lists of x and y values
-            x,y = zip(*coord)
-
-            plt.figure()
-            plt.rc('grid', linestyle="--")
-            plt.scatter(x, y, color='darkorange', s = 70)
-            plt.plot(x,y)
-
-            #If polygon contains point color is green else red
-            plt.scatter(point.x, point.y, color = 'green' if contains else 'red', s = 90)
-
-            max_x: float = self.points[0].x
-            for p in self.points:
-                if p.x > max_x:
-                    max_x = p.x
-
-                #If x coordinate is max move it to left
-                if p.x == max_x:
-                    #Add coordinate values above point
-                    plt.annotate((p.x, p.y), (p.x, p.y), (p.x - 0.4, p.y + 0.1))
-                else:
-                    plt.annotate((p.x, p.y), (p.x, p.y), (p.x + 0.1, p.y + 0.1))
-
-            #Add coordinate values above point
-            plt.annotate((point.x, point.y), (point.x, point.y), (point.x + 0.1, point.y + 0.1))
-
-            plt.figtext(0.5, 0.04, text, horizontalalignment = 'center', fontsize = 15)
-            plt.grid()
-            plt.show()
-
-        else:
+        if not isinstance(point, Point) or not isinstance(contains, bool):
             raise ValueError('Expected arguments type: Point, bool')
+
+        if contains:
+            text: str = f'Polygon contains point {point.x, point.y}'
+        else:
+            text: str = f'Polygon doesn\'t contains point {point.x, point.y}'
+
+        #List of tuples containing x and y coordinates of point
+        coord: List[Tuple[float, float]] = [(p.x, p.y) for p in self.points]
+
+        #Repeat the first point to create a 'closed loop'
+        coord.append(coord[0])
+
+        #Create lists of x and y values
+        x,y = zip(*coord)
+
+        plt.figure()
+        plt.rc('grid', linestyle="--")
+        plt.scatter(x, y, color='darkorange', s = 70)
+        plt.plot(x,y)
+
+        #If polygon contains point color is green else red
+        plt.scatter(point.x, point.y, color = 'green' if contains else 'red', s = 90)
+
+        max_x: float = self.points[0].x
+        for p in self.points:
+            if p.x > max_x:
+                max_x = p.x
+
+            #If x coordinate is max move it to left
+            if p.x == max_x:
+                #Add coordinate values above point
+                plt.annotate((p.x, p.y), (p.x, p.y), (p.x - 0.4, p.y + 0.1))
+            else:
+                plt.annotate((p.x, p.y), (p.x, p.y), (p.x + 0.1, p.y + 0.1))
+
+        #Add coordinate values above point
+        plt.annotate((point.x, point.y), (point.x, point.y), (point.x + 0.1, point.y + 0.1))
+
+        plt.figtext(0.5, 0.04, text, horizontalalignment = 'center', fontsize = 15)
+        plt.grid()
+        plt.show()
